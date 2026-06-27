@@ -1,0 +1,13 @@
+# Fichiers de configuration sensibles
+.env
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environnement virtuel (si utilisé à l'avenir)
+.venv/
+venv/
+env/

@@ -1,0 +1,42 @@
+# GitHub Actions Workflow : Rapport Quotidien Notion
+# Ce workflow exécute automatiquement le script main.py une fois par jour
+# à minuit heure de Nanjing (00:00 UTC+8 = 16:00 UTC = 17:00 heure du Maroc)
+# Fonctionne dans le cloud — pas besoin que le PC soit allumé.
+
+name: Daily Notion Report
+
+on:
+  schedule:
+    # Exécution à minuit Nanjing (00:00 UTC+8 = 16:00 UTC = 17:00 Maroc)
+    - cron: '0 16 * * *'
+  
+  # Permet de lancer manuellement depuis l'interface GitHub
+  workflow_dispatch:
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run daily report
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_STUDIES: ${{ secrets.NOTION_DATABASE_STUDIES }}
+          NOTION_DATABASE_EXPENSES: ${{ secrets.NOTION_DATABASE_EXPENSES }}
+          NOTION_DATABASE_INCOME: ${{ secrets.NOTION_DATABASE_INCOME }}
+          NOTION_DATABASE_HEALTH: ${{ secrets.NOTION_DATABASE_HEALTH }}
+          NOTION_DATABASE_REPORTS: ${{ secrets.NOTION_DATABASE_REPORTS }}
+          NOTION_DATABASE_PLAN: ${{ secrets.NOTION_DATABASE_PLAN }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python main.py
