@@ -2,11 +2,25 @@
 import time
 from datetime import datetime, date, timedelta, timezone
 
-def get_china_date():
-    """Retourne la date actuelle en Chine (Nanjing, UTC+8) au format YYYY-MM-DD."""
+def get_local_date_for_watcher():
+    """Retourne la date actuelle selon la localisation active."""
+    import os
+    import json
+    location = "Agadir"
+    try:
+        if os.path.exists("active_location.json"):
+            with open("active_location.json", "r") as f:
+                data = json.load(f)
+                location = data.get("location", "Agadir")
+    except Exception:
+        pass
+        
     utc_now = datetime.now(timezone.utc)
-    china_now = utc_now + timedelta(hours=8)
-    return china_now.date().isoformat()
+    if location == "Nanjing":
+        local_now = utc_now + timedelta(hours=8)
+    else:
+        local_now = utc_now + timedelta(hours=1)
+    return local_now.date().isoformat()
 
 import sys
 import io
@@ -68,7 +82,7 @@ def get_max_last_edited_time(target_date):
     # 5. Plan du Jour
     try:
         res = notion_service.query_database(config.DATABASE_PLAN, {
-            "property": "Jour", "date": {"equals": target_date}
+            "property": "Date", "date": {"equals": target_date}
         })
         for page in res.get("results", []):
             last_edited_times.append(page.get("last_edited_time"))
@@ -147,10 +161,10 @@ def main():
     
     while True:
         try:
-            # Vérifier si on a changé de jour en Chine (Nanjing, UTC+8)
-            current_date = get_china_date()
+            # Vérifier si on a changé de jour dans la localisation active
+            current_date = get_local_date_for_watcher()
             if current_date != target_date:
-                print(f"\n[{datetime.now().strftime('%H:%M:%S')}] [INFO] Passage au jour suivant en Chine : {target_date} -> {current_date}")
+                print(f"\n[{datetime.now().strftime('%H:%M:%S')}] [INFO] Passage au jour suivant (fuseau horaire actif) : {target_date} -> {current_date}")
                 target_date = current_date
                 last_processed_time = None  # Reset pour forcer la mise à jour
                 run_update(target_date)

@@ -31,7 +31,7 @@ class DayCloser:
                 database_id=self.db_plan_id,
                 filter_obj={
                     "and": [
-                        {"property": "Jour", "date": {"equals": self.target_date}},
+                        {"property": "Date", "date": {"equals": self.target_date}},
                         {"property": "Clôturer", "checkbox": {"equals": True}}
                     ]
                 }
@@ -47,53 +47,82 @@ class DayCloser:
             return False
 
     def fetch_active_tasks(self):
-        """Récupère toutes les tâches du jour ayant le statut 'Actif'."""
+        """Récupère toutes les tâches du jour et antérieures ayant le statut 'Actif' ou 'Replanifier'."""
         try:
             response = notion_service.query_database(
                 database_id=self.db_plan_id,
                 filter_obj={
                     "and": [
-                        {"property": "Jour", "date": {"equals": self.target_date}},
-                        {"property": "Status", "select": {"equals": "🟢 Actif"}}
+                        {
+                            "or": [
+                                {"property": "Status", "select": {"equals": "🟢 Actif"}},
+                                {"property": "Status", "select": {"equals": "♻️ Replanifier"}}
+                            ]
+                        },
+                        {"property": "Date", "date": {"on_or_before": self.target_date}}
                     ]
                 }
             )
             return response.get("results", [])
         except Exception as e:
-            print(f"[CLÔTURE] [ERREUR] Impossible de récupérer les tâches actives : {e}")
+            print(f"[CLÔTURE] [ERREUR] Impossible de récupérer les tâches actives/replanifiées : {e}")
             return []
 
     def close_and_archive_tasks(self, tasks):
-        """Met à jour le statut en '🗄️ Archivé' et décoche 'Clôturer'."""
+        """
+        Met à jour le statut des tâches selon la logique exacte du bouton Notion :
+        1. Status == '🟢 Actif' et Fait == True -> '🗄️ Archivé'
+        2. Status == '🟢 Actif' et Fait == False -> '♻️ Replanifier'
+        3. Status == '♻️ Replanifier' et Fait == True -> '🗄️ Archivé'
+        Dans tous les cas, décoche 'Clôturer' (le remet à False).
+        """
         if not tasks:
-            print("[CLÔTURE] Aucune tâche à archiver.")
+            print("[CLÔTURE] Aucune tâche à traiter.")
             return 0
             
-        print(f"[CLÔTURE] Clôture et archivage de {len(tasks)} tâche(s)...")
-        archived_count = 0
+        print(f"[CLÔTURE] Traitement et clôture de {len(tasks)} tâche(s)...")
+        updated_count = 0
         
         for task in tasks:
             page_id = task.get("id")
+            props = task.get("properties", {})
+            
+            # Récupérer la valeur réelle de Status et Fait
+            status = notion_service.get_prop_value(props, "Status")
+            fait = notion_service.get_prop_value(props, "Fait") or False
+            
+            new_status = None
+            if status == "🟢 Actif" and fait:
+                new_status = "🗄️ Archivé"
+            elif status == "🟢 Actif" and not fait:
+                new_status = "♻️ Replanifier"
+            elif status == "♻️ Replanifier" and fait:
+                new_status = "🗄️ Archivé"
+                
+            # Préparer les propriétés à mettre à jour
+            update_props = {
+                "Clôturer": {
+                    "checkbox": False
+                }
+            }
+            if new_status:
+                update_props["Status"] = {
+                    "select": {
+                        "name": new_status
+                    }
+                }
+                
             try:
                 notion.pages.update(
                     page_id=page_id,
-                    properties={
-                        "Status": {
-                            "select": {
-                                "name": "🗄️ Archivé"
-                            }
-                        },
-                        "Clôturer": {
-                            "checkbox": False
-                        }
-                    }
+                    properties=update_props
                 )
-                archived_count += 1
+                updated_count += 1
             except Exception as e:
                 print(f"  ❌ Erreur lors de la mise à jour de la page {page_id} : {e}")
                 
-        print(f"[CLÔTURE] {archived_count} tâche(s) archivée(s) et réinitialisée(s) avec succès.")
-        return archived_count
+        print(f"[CLÔTURE] {updated_count} tâche(s) traitée(s) et réinitialisée(s) avec succès.")
+        return updated_count
 
     def execute_pipeline(self):
         """

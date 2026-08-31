@@ -1,0 +1,44 @@
+{
+  "habits": [
+    {
+      "id": "bh_1785265711475",
+      "nom": "B",
+      "description": "a",
+      "poids": 3,
+      "influence": 100.0,
+      "date_creation": "2026-07-28T19:08:31.475073+00:00",
+      "date_derniere_rechute": "2026-07-30T19:34:02.406402+00:00",
+      "nombre_rechutes": 2,
+      "dates_rechutes": [
+        "2026-07-28",
+        "2026-07-30"
+      ]
+    },
+    {
+      "id": "bh_1785411109253",
+      "nom": "B1",
+      "description": "a",
+      "poids": 2,
+      "influence": 100.0,
+      "date_creation": "2026-07-30T11:31:49.253036+00:00",
+      "date_derniere_rechute": "2026-07-30T12:44:14.515750+00:00",
+      "nombre_rechutes": 1,
+      "dates_rechutes": [
+        "2026-07-30"
+      ]
+    },
+    {
+      "id": "bh_1785614824200",
+      "nom": "B3",
+      "description": "A",
+      "poids": 3,
+      "influence": 100.0,
+      "date_creation": "2026-08-01T20:07:04.200782+00:00",
+      "date_derniere_rechute": "2026-08-03T12:12:01.438173+00:00",
+      "nombre_rechutes": 1,
+      "dates_rechutes": [
+        "2026-08-03"
+      ]
+    }
+  ]
+}

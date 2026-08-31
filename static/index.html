@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan du Jour — Assistant IA</title>
+    <!-- Google Fonts for Notion-like Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Panel for Tasks -->
+        <aside class="sidebar" id="task-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="9" y1="9" x2="15" y2="9"/>
+                            <line x1="9" y1="13" x2="15" y2="13"/>
+                            <line x1="9" y1="17" x2="15" y2="17"/>
+                        </svg>
+                    </span>
+                    <h2>Plan du Jour</h2>
+                </div>
+                <div class="date-badge" id="current-date-badge">Chargement...</div>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab active" data-view="tasks" id="tab-tasks">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; display: inline-block; vertical-align: middle;">
+                        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                        <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                    </svg>
+                    Tâches
+                </button>
+                <button class="sidebar-tab" data-view="summary" id="tab-summary">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; display: inline-block; vertical-align: middle;">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Résumé
+                </button>
+            </div>
+
+            <!-- Tasks View (default) -->
+            <div class="sidebar-view active" id="tasks-view">
+                <div class="tasks-section">
+                    <div class="section-title">Tâches Actives</div>
+                    <ul class="tasks-list" id="active-tasks-list">
+                        <li class="empty-state">Aucune tâche active</li>
+                    </ul>
+                </div>
+                
+                <div class="tasks-section">
+                    <div class="section-title">Tâches Terminées</div>
+                    <ul class="tasks-list" id="completed-tasks-list">
+                        <li class="empty-state">Aucune tâche complétée</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Summary View (hidden) -->
+            <div class="sidebar-view" id="summary-view">
+                <div class="summary-header-label">Résumé des échanges</div>
+                <div class="summary-list" id="summary-list">
+                    <div class="summary-empty">Les résumés apparaîtront ici au fil de la conversation.</div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-secondary btn-full" id="btn-start-bilan" style="margin-bottom: 8px;">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"/>
+                    </svg>
+                    Bilan de journée
+                </button>
+                <button class="btn btn-secondary btn-full" id="btn-close-day-direct">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                    Terminer la journée
+                </button>
+            </div>
+        </aside>
+        
+        <main class="chat-container">
+            <header class="chat-header">
+                <div class="header-left">
+                    <button class="mobile-toggle" id="sidebar-toggle" aria-label="Toggle Sidebar">☰</button>
+                    <h1>Assistant IA</h1>
+                    <span class="status-indicator online" id="status-dot"></span>
+                </div>
+                <!-- System Header Message Area -->
+                <div id="system-header-msg" class="system-header-msg"></div>
+                <!-- Warning Banner inside header -->
+                <div class="critical-warning-banner" id="critical-warning-banner" style="display: none;">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; flex-shrink: 0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span id="critical-banner-text">Période critique</span>
+                </div>
+                <div class="temporal-info">
+                    <select id="location-select" class="location-select" aria-label="Localisation">
+                        <option value="Agadir">Agadir (MA)</option>
+                        <option value="Nanjing">Nanjing (CN)</option>
+                    </select>
+                    <span class="separator">•</span>
+                    <span id="china-time-display">CN : --:--</span>
+                    <span class="separator">•</span>
+                    <span id="morocco-time-display">MA : --:--</span>
+                </div>
+            </header>
+
+            <!-- Main Content Tabs -->
+            <div class="main-tabs">
+                <button class="main-tab active" data-main-view="chat" id="main-tab-chat">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Assistant IA
+                    <span class="status-indicator online" style="margin-left: 6px;"></span>
+                </button>
+                <button class="main-tab" data-main-view="objectives" id="main-tab-objectives">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+                    </svg>
+                    Objectifs
+                </button>
+                <button class="main-tab" data-main-view="infos" id="main-tab-infos">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    Infos
+                </button>
+                <button class="main-tab" data-main-view="habits" id="main-tab-habits">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                        <line x1="9" y1="9" x2="9.01" y2="9"/>
+                        <line x1="15" y1="9" x2="15.01" y2="9"/>
+                    </svg>
+                    Habits
+                </button>
+                <button class="main-tab" data-main-view="construction" id="main-tab-construction">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                    </svg>
+                    Construction
+                </button>
+                <button class="main-tab" data-main-view="suivie" id="main-tab-suivie">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    Suivie
+                </button>
+            </div>
+
+            <!-- Chat View (default) -->
+            <div class="main-view active" id="chat-view">
+                <!-- Chat Message List -->
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message ai">
+                        <div class="avatar">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M12 2v2M8 5h8M12 11V9"/>
+                            </svg>
+                        </div>
+                        <div class="message-content">
+                            <p>Bonjour ! Je suis votre assistant personnel intégré à Notion. Je peux vous aider à organiser votre journée, prendre des décisions sur vos tâches et réaliser vos bilans quotidiens.</p>
+                            <p>Que souhaitez-vous faire aujourd'hui ?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Suggestions Bar -->
+                <div class="quick-actions-bar">
+                    <button class="chip" data-msg="Planifier ma journée">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; display: inline-block; vertical-align: middle;">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/>
+                        </svg>
+                        Planifier ma journée
+                    </button>
+                    <button class="chip" data-msg="Ajouter une tâche">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; display: inline-block; vertical-align: middle;">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Ajouter une tâche
+                    </button>
+                    <button class="chip" data-msg="Faire le bilan de fin de journée">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; display: inline-block; vertical-align: middle;">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"/>
+                        </svg>
+                        Bilan du soir
+                    </button>
+                </div>
+
+                <!-- Input Area -->
+                <footer class="chat-input-area">
+                    <form id="chat-form" class="chat-form">
+                        <div class="chat-left-actions">
+                            <label for="image-upload" class="btn-upload" title="Uploader une image">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21 15 16 10 5 21"/>
+                                </svg>
+                            </label>
+                            <input type="file" id="image-upload" accept="image/*" style="display: none;">
+                            <button type="button" class="btn-mic" id="btn-mic" title="Mode vocal (Dictée)">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                    <line x1="12" y1="19" x2="12" y2="23"/>
+                                    <line x1="8" y1="23" x2="16" y2="23"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <textarea id="chat-input" placeholder="Discuter avec l'assistant ou lui demander des actions..." rows="1" autocomplete="off"></textarea>
+                        <button type="submit" class="btn btn-primary" id="btn-send">
+                            <svg class="send-icon" viewBox="0 0 24 24" width="18" height="18">
+                                <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                            </svg>
+                        </button>
+                    </form>
+                    
+                    <!-- Voice Mode Transcription Live Screen (Medium Grey Glassmorphism) -->
+                    <div id="voice-transcription-screen" class="voice-transcription-screen" style="display: none;">
+                        <div class="transcription-screen-header">
+                            <div class="transcription-screen-title">
+                                <span class="live-rec-dot"></span>
+                                <span>Transcription en direct</span>
+                            </div>
+                            <div class="transcription-commands-hint">
+                                <span class="cmd-chip">"matter" = Pause</span>
+                                <span class="cmd-chip">"ika" = Reprendre</span>
+                            </div>
+                        </div>
+                        <div class="transcription-screen-body" id="transcription-text-body">
+                            <span class="transcription-placeholder">Parlez maintenant... Votre texte s'affichera ici en temps réel.</span>
+                        </div>
+                    </div>
+
+                    <!-- Voice Mode Waveform Overlay -->
+                    <div id="voice-overlay" class="voice-overlay" style="display: none;">
+                        <div class="voice-status">
+                            <span class="voice-dot"></span>
+                            <span class="voice-status-text">À l'écoute...</span>
+                        </div>
+                        <div class="voice-waves">
+                            <div class="wave-bar bar-1"></div>
+                            <div class="wave-bar bar-2"></div>
+                            <div class="wave-bar bar-3"></div>
+                            <div class="wave-bar bar-4"></div>
+                            <div class="wave-bar bar-5"></div>
+                            <div class="wave-bar bar-6"></div>
+                            <div class="wave-bar bar-7"></div>
+                            <div class="wave-bar bar-8"></div>
+                            <div class="wave-bar bar-9"></div>
+                            <div class="wave-bar bar-10"></div>
+                            <div class="wave-bar bar-11"></div>
+                        </div>
+                        <div class="voice-actions">
+                            <button type="button" class="voice-btn btn-cancel" id="voice-cancel" title="Annuler">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="voice-btn btn-done" id="voice-done" title="Valider et transcrire">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+
+            <!-- Suivie View -->
+            <div class="main-view" id="suivie-view">
+                <div class="suivie-container" style="max-width: 720px; margin: 0 auto; padding: 24px 20px;">
+                    
+                    <!-- Header Bandeau Horaires + Bouton Souvenir -->
+                    <div style="background: linear-gradient(135deg, #1e293b, #0f172a); color: #fff; padding: 18px 22px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <span style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Fuseaux Horaires</span>
+                                <div style="font-size: 1.1rem; font-weight: 600; margin-top: 2px;">
+                                    🇨🇳 Nanjing : <span id="su-time-nanjing">--:--</span> &nbsp;•&nbsp; 🇲🇦 Agadir : <span id="su-time-agadir">--:--</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 14px; text-align: right;">
+                                <div>
+                                    <span style="font-size: 0.8rem; color: #94a3b8;">Rapport de la journée</span>
+                                    <div id="su-date-fr" style="font-size: 0.95rem; font-weight: 600; color: #38bdf8;">Chargement date...</div>
+                                </div>
+                                <button type="button" id="btn-open-souvenir-modal" onclick="openSouvenirModal()" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; border: none; padding: 9px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(59,130,246,0.35);">
+                                    ✨ + Partager un Souvenir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="suivie-main-form" style="display: flex; flex-direction: column; gap: 20px;">
+
+                        <!-- AREA 1: SOMMEIL -->
+                        <div class="su-card" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                            <h3 style="margin: 0 0 14px 0; font-size: 1.05rem; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                                <span>😴</span> Sommeil
+                            </h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; align-items: center;">
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #475569; margin-bottom: 4px;">Couché à</label>
+                                    <input type="time" id="su-sleep-coucher" value="23:30" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #475569; margin-bottom: 4px;">Réveillé à</label>
+                                    <input type="time" id="su-sleep-reveil" value="07:30" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #475569; margin-bottom: 4px;">Durée estimée</label>
+                                    <div id="su-sleep-duree" style="font-size: 1rem; font-weight: 700; color: #2563eb; padding: 8px 0;">8h 00m</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AREA 2: REPAS -->
+                        <div class="su-card" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                                <h3 style="margin: 0; font-size: 1.05rem; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                                    <span>🍽️</span> Repas du jour
+                                </h3>
+                                <button type="button" id="btn-add-repas" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer;">
+                                    + Ajouter un repas
+                                </button>
+                            </div>
+                            <div id="su-repas-container" style="display: flex; flex-direction: column; gap: 12px;">
+                                <!-- Dynamic repas rows injected by JS -->
+                            </div>
+                        </div>
+
+                        <!-- AREA 3: SPORT -->
+                        <div class="su-card" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                                <h3 style="margin: 0; font-size: 1.05rem; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                                    <span>🏃</span> Activités Physiques & Sport
+                                </h3>
+                                <button type="button" id="btn-add-sport" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer;">
+                                    + Créer une activité
+                                </button>
+                            </div>
+                            <!-- Datalist de suggestions de sports -->
+                            <datalist id="sport-suggestions-list">
+                                <option value="Course à pied"></option>
+                                <option value="Musculation"></option>
+                                <option value="Natation"></option>
+                                <option value="Cyclisme / Vélo"></option>
+                                <option value="Marche rapide"></option>
+                                <option value="Football"></option>
+                                <option value="Basketball"></option>
+                                <option value="Tennis"></option>
+                                <option value="Fitness / Cardio"></option>
+                                <option value="Yoga / Étirements"></option>
+                            </datalist>
+
+                            <div id="su-sports-container" style="display: flex; flex-direction: column; gap: 12px;">
+                                <!-- Dynamic sport rows injected by JS -->
+                            </div>
+                        </div>
+
+                        <!-- AREA 4: BUDGET -->
+                        <div class="su-card" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                            <h3 style="margin: 0 0 14px 0; font-size: 1.05rem; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                                <span>💰</span> Budget du Jour
+                            </h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 10px;">
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #475569; margin-bottom: 4px;">Budget prévu (¥)</label>
+                                    <input type="number" id="su-budget-prevu" placeholder="ex: 80" min="0" step="0.5" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #475569; margin-bottom: 4px;">Montant dépensé (¥)</label>
+                                    <input type="number" id="su-budget-depense" placeholder="ex: 65" min="0" step="0.5" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+                                </div>
+                            </div>
+                            <div id="su-budget-statut" style="padding: 10px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.88rem; font-weight: 600; color: #475569;">
+                                Remplissez les montants ci-dessus pour calculer le résultat.
+                            </div>
+                        </div>
+
+                        <!-- AREA 5: ÉTUDES -->
+                        <div class="su-card" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                                <h3 style="margin: 0; font-size: 1.05rem; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                                    <span>📚</span> Études & Examens
+                                </h3>
+                                <button type="button" id="btn-add-note" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer;">
+                                    + Ajouter une note
+                                </button>
+                            </div>
+                            <div id="su-notes-container" style="display: flex; flex-direction: column; gap: 12px;">
+                                <!-- Dynamic note rows injected by JS -->
+                            </div>
+                        </div>
+
+                        <!-- AREA 6: NOTIFICATION WHATSAPP PARENTS (MESSAGE PERSONNALISABLE) -->
+                        <div class="su-card" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                            <h3 style="margin: 0 0 10px 0; font-size: 1.05rem; font-weight: 600; color: #166534; display: flex; align-items: center; gap: 8px;">
+                                <span>💬</span> Notification WhatsApp aux Parents
+                            </h3>
+                            <p style="font-size: 0.83rem; color: #15803d; margin: 0 0 12px 0;">
+                                Personnalise le message WhatsApp qui s'envoie à tes parents après validation du rapport.
+                            </p>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+                                    <div style="flex: 1; min-width: 220px;">
+                                        <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #166534; margin-bottom: 4px;">Numéro WhatsApp des parents (ex: +2126...)</label>
+                                        <input type="tel" id="su-whatsapp-phone" placeholder="ex: +212600000000" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid #86efac; border-radius: 8px; font-size: 0.9rem; background: #fff;">
+                                    </div>
+                                    <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #166534; cursor: pointer; margin-top: 16px;">
+                                        <input type="checkbox" id="su-whatsapp-enable" checked> Ouvrir WhatsApp après envoi
+                                    </label>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #166534; margin-bottom: 4px;">Message WhatsApp personnalisé (Rapport Quotidien)</label>
+                                    <textarea id="su-whatsapp-msg-template" rows="3" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid #86efac; border-radius: 8px; font-size: 0.85rem; font-family: inherit; resize: vertical;" placeholder="Rédige ton message ici..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button + Status -->
+
+                        <div style="display: flex; align-items: center; gap: 14px; margin-top: 8px;">
+                            <button type="submit" id="su-submit-btn" style="padding: 12px 28px; background: #2563eb; color: #fff; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(37,99,235,0.3);">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                Envoyer le rapport à mes parents
+                            </button>
+                            <div id="su-result" style="font-size: 0.88rem; font-weight: 600;"></div>
+                        </div>
+
+                    </form>
+
+                    <!-- Last Update Time Banner -->
+                    <div id="su-last-update" style="display: none; text-align: center; margin-top: 14px; font-size: 0.82rem; color: #64748b; background: #f8fafc; padding: 10px; border-radius: 8px;">
+                        <strong>Dernier rapport envoyé :</strong> <span id="su-last-update-time">--</span>
+                    </div>
+
+                    <!-- AREA 7: VOYAGES & SOUVENIRS (INLINE CARD) -->
+                    <div class="su-card" id="su-souvenirs-card" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-top: 16px;">
+                        <h3 style="margin: 0 0 16px 0; font-size: 1.1rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+                            <span>✨</span> Partager un Souvenir ou Voyage
+                        </h3>
+
+                        <!-- TYPE SELECTOR: MOMENT vs VOYAGE -->
+                        <div style="display: flex; gap: 12px; margin-bottom: 20px; background: #f1f5f9; padding: 4px; border-radius: 10px;">
+                            <button type="button" id="btn-type-moment" class="su-type-btn" style="flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; background: #2563eb; color: #fff; transition: all 0.2s;">
+                                📸 Simple Moment
+                            </button>
+                            <button type="button" id="btn-type-voyage" class="su-type-btn" style="flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; background: transparent; color: #64748b; transition: all 0.2s;">
+                                ✈️ Voyage / Expédition
+                            </button>
+                        </div>
+
+                        <!-- FORMULAIRE MOMENT -->
+                        <form id="form-inline-moment" style="display: flex; flex-direction: column; gap: 14px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div>
+                                    <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 4px;">Titre du Moment</label>
+                                    <input type="text" id="moment-titre" required placeholder="ex: Soirée resto entre amis 🍱" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 4px;">Date</label>
+                                    <input type="text" id="moment-date" placeholder="ex: Lundi 31 août 2026" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 4px;">Description / Récit (Zone de texte adaptative multi-lignes)</label>
+                                <textarea id="moment-desc" rows="4" placeholder="Raconte ce qu'il s'est passé, tes anecdotes... (Tu peux faire plusieurs paragraphes et retours à la ligne !)" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; font-family: inherit; resize: vertical; line-height: 1.5;"></textarea>
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 4px;">📷 Photos du Moment (Sélection multiple possible)</label>
+                                <input type="file" id="moment-photos" accept="image/*" multiple style="font-size: 0.85rem; width: 100%;">
+                            </div>
+
+                            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px;">
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #166534; margin-bottom: 4px;">💬 Message WhatsApp personnalisé (Moment)</label>
+                                <textarea id="moment-wa-msg" rows="3" placeholder="Message WhatsApp..." style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #86efac; border-radius: 8px; font-size: 0.85rem; font-family: inherit; resize: vertical;"></textarea>
+                            </div>
+
+                            <button type="submit" id="btn-submit-moment" style="padding: 12px 24px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; border-radius: 9px; font-size: 0.92rem; font-weight: 600; cursor: pointer; align-self: flex-start; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(37,99,235,0.3);">
+                                📤 Publier ce Moment sur Notion
+                            </button>
+                            <div id="moment-result" style="font-size: 0.88rem; font-weight: 600;"></div>
+                        </form>
+
+                        <!-- FORMULAIRE VOYAGE -->
+                        <form id="form-inline-voyage" style="display: none; flex-direction: column; gap: 16px;">
+
+                            <!-- BANDEAU VOYAGE EN COURS (SI ACTIF) -->
+                            <div id="voyage-active-banner" style="display: none; background: linear-gradient(135deg, #0f172a, #1e293b); color: #fff; padding: 14px 18px; border-radius: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <span style="background: #ef4444; color: #fff; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px;">🔴 Voyage en direct actif</span>
+                                    <div id="voyage-active-title" style="font-size: 1.05rem; font-weight: 700; margin-top: 4px; color: #38bdf8;">--</div>
+                                    <div id="voyage-active-dates" style="font-size: 0.8rem; color: #94a3b8;">--</div>
+                                </div>
+                                <button type="button" id="btn-close-voyage-active" style="background: #dc2626; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(220,38,38,0.4);">
+                                    🏁 Clôturer & Terminer ce Voyage
+                                </button>
+                            </div>
+
+                            <!-- BANDEAU AVERTISSEMENT SI RECAP BLOQUÉ -->
+                            <div id="voyage-recap-blocked-notice" style="display: none; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 500;">
+                                ⚠️ Un voyage en direct est actuellement en cours. La publication d'un carnet récapitulatif sera à nouveau disponible dès que tu auras clôturé le voyage actif.
+                            </div>
+
+                            <div id="voyage-fields-group" style="display: flex; flex-direction: column; gap: 14px;">
+                                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+                                    <div>
+                                        <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 4px;">Titre du Voyage / Destination</label>
+                                        <input type="text" id="voyage-titre" required placeholder="ex: Expédition à Pékin & La Grande Muraille ✈️" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 4px;">Période / Dates</label>
+                                        <input type="text" id="voyage-dates" placeholder="ex: 15 au 18 août 2026" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+                                    </div>
+                                </div>
+
+                                <!-- MODE DE VOYAGE: EN DIRECT VS RECAP -->
+                                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
+                                    <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 8px;">Mode de partage du voyage</label>
+                                    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                                        <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; color: #1e293b; cursor: pointer;">
+                                            <input type="radio" name="voyage_mode" id="radio-mode-direct" value="direct" checked> 🔴 Voyage en Direct (Carnet de bord évolutif)
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; color: #1e293b; cursor: pointer;">
+                                            <input type="radio" name="voyage_mode" id="radio-mode-recap" value="recap"> 🏁 Carnet Récapitulatif Complet
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- HISTORIQUE DES ÉTAPES DÉJÀ PUBLIÉES DANS LE VOYAGE EN COURS -->
+                            <div id="voyage-published-section" style="display: none; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 14px;">
+                                <h4 style="margin: 0 0 10px 0; font-size: 0.9rem; font-weight: 700; color: #0369a1; display: flex; align-items: center; gap: 6px;">
+                                    <span>✅</span> Étapes déjà publiées sur Notion dans ce voyage
+                                </h4>
+                                <div id="voyage-published-etapes-list" style="display: flex; flex-direction: column; gap: 8px;">
+                                    <!-- Dynamic published steps list -->
+                                </div>
+                            </div>
+
+                            <!-- ÉTAPES DU VOYAGE DYNAMIQUES -->
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <h4 id="voyage-etapes-title" style="margin: 0; font-size: 0.95rem; font-weight: 600; color: #1e293b;">📌 Nouvelle Étape à ajouter</h4>
+                                    <button type="button" id="btn-add-voyage-etape" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer;">
+                                        + Ajouter une étape
+                                    </button>
+                                </div>
+                                <div id="voyage-etapes-container" style="display: flex; flex-direction: column; gap: 14px;">
+                                    <!-- Dynamic etape rows -->
+                                </div>
+                            </div>
+
+                            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px;">
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #166534; margin-bottom: 4px;">💬 Message WhatsApp personnalisé (Voyage)</label>
+                                <textarea id="voyage-wa-msg" rows="3" placeholder="Message WhatsApp pour le voyage..." style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #86efac; border-radius: 8px; font-size: 0.85rem; font-family: inherit; resize: vertical;"></textarea>
+                            </div>
+
+                            <button type="submit" id="btn-submit-voyage" style="padding: 12px 24px; background: linear-gradient(135deg, #059669, #047857); color: #fff; border: none; border-radius: 9px; font-size: 0.92rem; font-weight: 600; cursor: pointer; align-self: flex-start; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(5,150,105,0.3);">
+                                📤 Publier ce Voyage sur Notion
+                            </button>
+                            <div id="voyage-result" style="font-size: 0.88rem; font-weight: 600;"></div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Objectives View -->
+            <div class="main-view" id="objectives-view">
+                <div class="objectives-container">
+                    
+                    <!-- Stats cards -->
+                    <div class="obj-stats-grid">
+                        <div class="obj-stat-card obj-stat-not-started">
+                            <div class="obj-stat-label">Non commencés & En pause</div>
+                            <div id="obj-stat-not-started" class="obj-stat-value">0</div>
+                        </div>
+                        <div class="obj-stat-card obj-stat-in-progress">
+                            <div class="obj-stat-label">En cours</div>
+                            <div id="obj-stat-in-progress" class="obj-stat-value">0</div>
+                        </div>
+                        <div class="obj-stat-card obj-stat-done">
+                            <div class="obj-stat-label">Terminés</div>
+                            <div id="obj-stat-done" class="obj-stat-value">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Board Columns -->
+                    <div class="obj-board-grid">
+                        
+                        <!-- Column 1: Non commencés & En pause -->
+                        <div class="obj-column" id="obj-col-not-started">
+                            <div class="obj-column-header">
+                                <div class="obj-column-title-group">
+                                    <span class="obj-column-badge badge-not-started">Non commencé & En pause</span>
+                                    <span class="obj-col-count">(0)</span>
+                                </div>
+                                <button class="obj-col-add-btn" id="obj-add-btn-col1">+</button>
+                            </div>
+                            
+                            <div class="obj-sub-header">À faire</div>
+                            <div class="obj-cards-list" id="obj-list-not-started">
+                                <!-- cards loaded here -->
+                            </div>
+                            
+                            <div class="obj-sub-header paused-header">En pause</div>
+                            <div class="obj-cards-list" id="obj-list-paused">
+                                <!-- paused cards loaded here -->
+                            </div>
+
+                            <!-- Trash Zone -->
+                            <div class="obj-trash-zone" id="obj-trash-col1">
+                                <div class="obj-trash-content">
+                                    <svg class="trash-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <g class="trash-lid-group">
+                                            <path d="M3 6h18M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                        </g>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                                        <line x1="10" y1="11" x2="10" y2="17" />
+                                        <line x1="14" y1="11" x2="14" y2="17" />
+                                    </svg>
+                                    <span>Glisser ici pour supprimer</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: En cours -->
+                        <div class="obj-column" id="obj-col-in-progress">
+                            <div class="obj-column-header">
+                                <div class="obj-column-title-group">
+                                    <span class="obj-column-badge badge-in-progress">En cours</span>
+                                    <span class="obj-col-count">(0)</span>
+                                </div>
+                                <button class="obj-col-add-btn" id="obj-add-btn-col2">+</button>
+                            </div>
+                            <div class="obj-cards-list" id="obj-list-in-progress">
+                                <!-- cards loaded here -->
+                            </div>
+
+                            <!-- Trash Zone -->
+                            <div class="obj-trash-zone" id="obj-trash-col2">
+                                <div class="obj-trash-content">
+                                    <svg class="trash-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <g class="trash-lid-group">
+                                            <path d="M3 6h18M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                        </g>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                                        <line x1="10" y1="11" x2="10" y2="17" />
+                                        <line x1="14" y1="11" x2="14" y2="17" />
+                                    </svg>
+                                    <span>Glisser ici pour supprimer</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 3: Terminés -->
+                        <div class="obj-column" id="obj-col-done">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="background: #D3F9D8; color: #2B8A3E; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 10px; text-transform: uppercase;">Terminé</span>
+                                    <span class="obj-col-count" style="font-size: 12px; color: #787774; font-weight: 500;">(0)</span>
+                                </div>
+                            </div>
+                            <div class="obj-cards-list" id="obj-list-done" style="display: flex; flex-direction: column; gap: 12px; flex: 1;">
+                                <!-- cards loaded here -->
+                            </div>
+
+                            <!-- Trash Zone -->
+                            <div class="obj-trash-zone" id="obj-trash-col3">
+                                <div class="obj-trash-content">
+                                    <svg class="trash-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <g class="trash-lid-group">
+                                            <path d="M3 6h18M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                        </g>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                                        <line x1="10" y1="11" x2="10" y2="17" />
+                                        <line x1="14" y1="11" x2="14" y2="17" />
+                                    </svg>
+                                    <span>Glisser ici pour supprimer</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Infos View (hidden) -->
+            <div class="main-view" id="infos-view">
+                <div class="infos-container">
+                    <div class="infos-grid">
+                        
+                        <!-- 1. Section Modules -->
+                        <div class="infos-section">
+                            <div class="infos-section-header">
+                                <h3>Mes Modules</h3>
+                            </div>
+                            <!-- Formulaire Ajout Module -->
+                            <div class="exam-form">
+                                <div class="exam-form-row">
+                                    <input type="text" id="module-name" class="exam-input" placeholder="Nom du module (ex: Mathématiques)">
+                                    <button class="btn btn-primary btn-add-exam" id="btn-add-module">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                        Créer
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Liste Modules -->
+                            <div class="modules-list" id="modules-list">
+                                <div class="exams-empty-state">
+                                    <p>Chargement des modules...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Section Évaluations (Mes obligations) -->
+                        <div class="infos-section">
+                            <div class="infos-section-header">
+                                <h3>Mes obligations</h3>
+                            </div>
+                            <!-- Formulaire Ajout Évaluation -->
+                            <div class="exam-form">
+                                <div class="exam-form-grid">
+                                    <select id="exam-type-select" class="exam-input select-input">
+                                        <option value="Examen">Examen</option>
+                                        <option value="TD">TD</option>
+                                        <option value="Devoir Maison">Devoir Maison</option>
+                                        <option value="Projet">Projet</option>
+                                    </select>
+                                    <select id="exam-module-select" class="exam-input select-input">
+                                        <option value="">Sélectionner un module...</option>
+                                    </select>
+                                    <div class="date-inputs-row">
+                                        <input type="date" id="exam-date" class="exam-input exam-date-input">
+                                        <input type="time" id="exam-time" class="exam-input exam-time-input">
+                                    </div>
+                                    <button class="btn btn-primary btn-add-exam" id="btn-add-exam">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                        Ajouter
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Liste Évaluations -->
+                            <div class="exams-list" id="exams-list">
+                                <div class="exams-empty-state">
+                                    <p>Chargement des obligations...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Section Vacances -->
+                        <div class="infos-section">
+                            <div class="infos-section-header">
+                                <h3>Mes Périodes de Vacances</h3>
+                            </div>
+                            <!-- Formulaire Ajout Vacances -->
+                            <div class="exam-form">
+                                <div class="exam-form-grid-vac">
+                                    <input type="text" id="vacation-label" class="exam-input" placeholder="Libellé (ex: Vacances d'été)">
+                                    <div class="date-inputs-row">
+                                        <input type="date" id="vacation-start" class="exam-input exam-date-input" title="Date de début">
+                                        <span class="date-separator">au</span>
+                                        <input type="date" id="vacation-end" class="exam-input exam-date-input" title="Date de fin">
+                                    </div>
+                                    <button class="btn btn-primary btn-add-exam" id="btn-add-vacation">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                        Ajouter
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Liste Vacances -->
+                            <div class="vacations-list" id="vacations-list">
+                                <div class="exams-empty-state">
+                                    <p>Aucune période de vacances enregistrée</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 4. Section Idées d'objectifs -->
+                        <div class="infos-section">
+                            <div class="infos-section-header">
+                                <h3>Idées d'objectifs</h3>
+                            </div>
+                            <div class="exam-form">
+                                <div class="exam-form-row">
+                                    <input type="text" id="revoir-title" class="exam-input" placeholder="Nouvelle idée d'objectif (ex: Apprendre le Rust)">
+                                    <button class="btn btn-primary btn-add-exam" id="btn-add-revoir">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                        Ajouter
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="revoir-list" id="revoir-list">
+                                <div class="exams-empty-state">
+                                    <p>Aucune idée d'objectif mise de côté</p>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Habits View (dedicated page) -->
+            <div class="main-view" id="habits-view">
+                <div class="habits-page">
+                    <!-- Top Row: Glass on left + Habits Lists on right -->
+                    <div class="habits-top-row">
+                        <!-- Left: Giant 3D Isometric Glass -->
+                        <div class="habits-page-glass">
+                            <div class="glass-scene">
+                                <!-- SVG Curved Arc: liquid pouring from glass rim to mini glass -->
+                                <svg class="overflow-arc-svg" id="overflow-arc-svg" viewBox="0 0 250 360" preserveAspectRatio="none">
+                                    <!-- Main liquid arc path -->
+                                    <path class="arc-stream" id="arc-stream-path"
+                                          d="M 125,20 C 180,-15 240,60 238,280"
+                                          fill="none" stroke="url(#troubleGrad)" stroke-width="5"
+                                          stroke-linecap="round" />
+                                    <!-- Gradient for trouble water color -->
+                                    <defs>
+                                        <linearGradient id="troubleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" stop-color="#8d6e63" stop-opacity="0.9"/>
+                                            <stop offset="100%" stop-color="#5d4037" stop-opacity="0.8"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <!-- Animated droplets along the path -->
+                                    <circle class="arc-drop ad1" r="3.5" fill="#6d4c41">
+                                        <animateMotion dur="1.2s" repeatCount="indefinite"
+                                            path="M 125,20 C 180,-15 240,60 238,280" />
+                                    </circle>
+                                    <circle class="arc-drop ad2" r="2.5" fill="#8d6e63">
+                                        <animateMotion dur="1.2s" repeatCount="indefinite" begin="0.4s"
+                                            path="M 125,20 C 180,-15 240,60 238,280" />
+                                    </circle>
+                                    <circle class="arc-drop ad3" r="2" fill="#5d4037">
+                                        <animateMotion dur="1.2s" repeatCount="indefinite" begin="0.8s"
+                                            path="M 125,20 C 180,-15 240,60 238,280" />
+                                    </circle>
+                                </svg>
+
+                                <!-- Mini Glass Trophy (receptacle for expelled trouble water) -->
+                                <div class="mini-glass-trophy" id="mini-glass-trophy" style="display: none;">
+                                    <div class="mini-glass-cylinder">
+                                        <div class="mini-glass-water-trouble" id="mini-water-trouble-level"></div>
+                                        <div class="mini-glass-highlight"></div>
+                                    </div>
+                                </div>
+
+                                <div class="glass-iso">
+                                    <!-- Glass cylinder body -->
+                                    <div class="glass-cylinder">
+                                        <!-- Water layers inside -->
+                                        <div class="glass-water-clean" id="water-clean-level"></div>
+                                        <div class="glass-water-trouble" id="water-trouble-level"></div>
+                                        <!-- Water surface shimmer -->
+                                        <div class="water-surface" id="water-surface"></div>
+                                        <!-- Reflection strip -->
+                                        <div class="glass-highlight"></div>
+                                        <div class="glass-highlight-2"></div>
+                                        <!-- Bubbles -->
+                                        <div class="glass-bubbles-container">
+                                            <span class="gbubble gb1"></span>
+                                            <span class="gbubble gb2"></span>
+                                            <span class="gbubble gb3"></span>
+                                            <span class="gbubble gb4"></span>
+                                            <span class="gbubble gb5"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Outside badges container (unclipped overflow for hover tooltips) -->
+                                    <div class="outside-badges-container" id="outside-badges-container"></div>
+                                </div>
+
+
+                                <!-- Shadow -->
+                                <div class="glass-floor-shadow"></div>
+                            </div>
+                            <div class="glass-status-block">
+                                <div id="glass-status-text" class="glass-status-big">Chargement...</div>
+                                <div class="glass-legend">
+                                    <span class="legend-item"><span class="legend-dot clean"></span> Eau propre</span>
+                                    <span class="legend-item"><span class="legend-dot trouble"></span> Eau trouble</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Habits Lists with View Switcher -->
+                        <div class="habits-page-lists">
+                            <div class="habits-view-header">
+                                <div class="habits-view-tabs">
+                                    <button id="tab-good-habits" class="habits-tab-btn active" onclick="switchHabitsTab('good')">
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#0288d1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                                        <span>Bonnes Habitudes</span>
+                                    </button>
+                                    <button id="tab-bad-habits" class="habits-tab-btn" onclick="switchHabitsTab('bad')">
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#795548" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                                        <span>Mauvaises Habitudes</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Vue 1: Bonnes Habitudes -->
+                            <div id="good-habits-container" class="habits-tab-content active">
+                                <div class="habits-card">
+                                    <p class="habits-card-subtitle">Cochez depuis l'app → synchronisé avec Notion</p>
+                                    <div id="good-habits-list" class="habits-checklist"></div>
+                                </div>
+                            </div>
+
+                            <!-- Vue 2: Mauvaises Habitudes -->
+                            <div id="bad-habits-container" class="habits-tab-content" style="display: none;">
+                                <div class="habits-card">
+                                    <p class="habits-card-subtitle">Gérez vos habitudes à éliminer</p>
+                                    <div class="bad-habit-add-form" style="margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px;">
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="bad-habit-title" class="exam-input" placeholder="Nouvelle mauvaise habitude..." style="flex: 1;">
+                                            <select id="bad-habit-poids" class="exam-input" style="width: 95px; flex-shrink: 0;">
+                                                <option value="1">P1 (0.5)</option>
+                                                <option value="2" selected>P2 (1.0)</option>
+                                                <option value="3">P3 (2.0)</option>
+                                            </select>
+                                            <button class="btn btn-primary btn-add-exam" id="btn-add-bad-habit" title="Ajouter">
+                                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                            </button>
+                                        </div>
+                                        <input type="text" id="bad-habit-desc" class="exam-input" placeholder="Description optionnelle (déclencheur, contexte...)" style="font-size: 11px;">
+                                    </div>
+                                    <div id="bad-habits-list" class="bad-habits-cards-container"></div>
+                                    <div id="bad-habits-pagination" class="bad-habits-pagination-bar" style="display: none;">
+                                        <button id="btn-bad-prev" class="bad-pagination-btn" onclick="changeBadHabitsPage(-1)" title="Page précédente">
+                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                                        </button>
+                                        <span id="bad-habits-page-info" class="bad-pagination-info">1 / 1</span>
+                                        <button id="btn-bad-next" class="bad-pagination-btn" onclick="changeBadHabitsPage(1)" title="Page suivante">
+                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Progression Hebdomadaire (Vue Végétale et Minimaliste) -->
+                    <div class="weekly-habits-section">
+                        <div class="weekly-habits-header">
+                            <div class="weekly-habits-title-group">
+                                <div class="weekly-habits-icon">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2e7d32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.4 19 2c1 2 2 4.18 2 8 0 5.5-4.77 10-10 10Z"/>
+                                        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="weekly-habits-title">Progression de la Semaine</h3>
+                                    <p class="weekly-habits-subtitle">Aperçu visuel de vos 7 journées</p>
+                                </div>
+                            </div>
+                            <div class="weekly-nav-controls">
+                                <button id="btn-prev-week" class="btn-week-nav" title="Semaine précédente">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                                </button>
+                                <span id="weekly-date-range-label" class="weekly-date-range-label">Chargement...</span>
+                                <button id="btn-next-week" class="btn-week-nav" title="Semaine suivante">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Grille des 7 jours (Lundi à Dimanche) -->
+                        <div class="weekly-days-grid" id="weekly-days-grid">
+                            <!-- Généré dynamiquement en JS -->
+                        </div>
+                    </div>
+
+                    <!-- Section 4 : Station d'Irrigation (Machine d'irrigation intégrée) -->
+                    <div class="irrigation-station-section">
+                        <!-- Header Info Bar -->
+                        <div class="construction-header-bar">
+                            <div class="construction-title-group">
+                                <div class="construction-icon-badge">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="construction-page-title">Station d'Irrigation</h3>
+                                    <p class="construction-page-subtitle">Insérez un verre quotidien depuis la progression ci-dessus pour irriguer la station</p>
+                                </div>
+                            </div>
+                            <div class="construction-header-actions">
+                                <label class="btn-import-asset" title="Importer vos propres images, stickers ou visuels sur la machine">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                                        <polyline points="21 15 16 10 5 21"/>
+                                    </svg>
+                                    <span>Importer Asset</span>
+                                    <input type="file" id="user-custom-asset-input" accept="image/*" onchange="handleUserCustomAssetUpload(event)" style="display:none;">
+                                </label>
+                                <button id="btn-calibrate-hotspot" class="btn-calibrate-btn" onclick="toggleHotspotCalibration()" title="Ajuster la position et la taille de tous les éléments">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+                                    <span>Ajuster Zone Cliquable</span>
+                                </button>
+                                <div class="construction-status-pill">
+                                    <span class="pulse-led green"></span>
+                                    <span>Machine Prête</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Calibration Control Bar (Appears when calibrating) -->
+                        <div class="hotspot-calibration-bar" id="hotspot-calibration-bar" style="display: none;">
+                            <div class="calib-group-box">
+                                <div class="calib-section-title">🔴 Bouton Power</div>
+                                <div class="calib-control-group">
+                                    <label>PosX: <span id="calib-val-x">14.8%</span></label>
+                                    <input type="range" id="calib-range-x" min="0" max="95" step="0.1" value="14.8" oninput="updateHotspotFromSliders()">
+                                </div>
+                                <div class="calib-control-group">
+                                    <label>PosY: <span id="calib-val-y">86.8%</span></label>
+                                    <input type="range" id="calib-range-y" min="0" max="95" step="0.1" value="86.8" oninput="updateHotspotFromSliders()">
+                                </div>
+                                <div class="calib-control-group">
+                                    <label>Taille: <span id="calib-val-size">6.2%</span></label>
+                                    <input type="range" id="calib-range-size" min="2" max="25" step="0.1" value="6.2" oninput="updateHotspotFromSliders()">
+                                </div>
+                            </div>
+
+                            <div class="calib-group-box">
+                                <div class="calib-section-title">🥛 Verre Entrée</div>
+                                <div class="calib-control-group">
+                                    <label>Verre X: <span id="calib-alcove-val-x">20.6%</span></label>
+                                    <input type="range" id="calib-alcove-range-x" min="0" max="95" step="0.1" value="20.6" oninput="updateAlcoveFromSliders()">
+                                </div>
+                                <div class="calib-control-group">
+                                    <label>Verre Y: <span id="calib-alcove-val-y">24.0%</span></label>
+                                    <input type="range" id="calib-alcove-range-y" min="0" max="95" step="0.1" value="24.0" oninput="updateAlcoveFromSliders()">
+                                </div>
+                                <div class="calib-control-group">
+                                    <label>Largeur: <span id="calib-alcove-val-w">17.5%</span></label>
+                                    <input type="range" id="calib-alcove-range-w" min="5" max="35" step="0.1" value="17.5" oninput="updateAlcoveFromSliders()">
+                                </div>
+                                <div class="calib-control-group">
+                                    <label>Hauteur: <span id="calib-alcove-val-h">38.5%</span></label>
+                                    <input type="range" id="calib-alcove-range-h" min="10" max="60" step="0.1" value="38.5" oninput="updateAlcoveFromSliders()">
+                                </div>
+                            </div>
+
+                            <div class="calib-group-box">
+                                <div class="calib-section-title">🧲 Aimant Bleu (Forme & Pos)</div>
+                                <div class="calib-control-group">
+                                    <label>PosY (px): <span id="calib-magnet-val-y">-22px</span></label>
+                                    <input type="range" id="calib-magnet-range-y" min="-60" max="40" step="1" value="-22" oninput="updateMagnetFromSliders()">
+                                </div>
+                                <div class="calib-control-group">
+                                    <label>Largeur (px): <span id="calib-magnet-val-w">42px</span></label>
+                                    <input type="range" id="calib-magnet-range-w" min="15" max="90" step="1" value="42" oninput="updateMagnetFromSliders()">
+                                </div>
+                                <div class="calib-control-group">
+                                    <label>Hauteur (px): <span id="calib-magnet-val-h">22px</span></label>
+                                    <input type="range" id="calib-magnet-range-h" min="6" max="70" step="1" value="22" oninput="updateMagnetFromSliders()">
+                                </div>
+                            </div>
+
+                            <div class="calib-group-box">
+                                <div class="calib-section-title">📊 Écran Analyse</div>
+                                <div class="calib-control-group">
+                                    <label>Écran X: <span id="calib-analysis-val-x">41.8%</span></label>
+                                    <input type="range" id="calib-analysis-range-x" min="0" max="95" step="0.1" value="41.8" oninput="updateAnalysisFromSliders()">
+                                </div>
+                                <div class="calib-control-group">
+                                    <label>Écran Y: <span id="calib-analysis-val-y">11.8%</span></label>
+                                    <input type="range" id="calib-analysis-range-y" min="0" max="95" step="0.1" value="11.8" oninput="updateAnalysisFromSliders()">
+                                </div>
+                                <div class="calib-control-group">
+                                    <label>Largeur: <span id="calib-analysis-val-w">30.2%</span></label>
+                                    <input type="range" id="calib-analysis-range-w" min="10" max="50" step="0.1" value="30.2" oninput="updateAnalysisFromSliders()">
+                                </div>
+                                <div class="calib-control-group">
+                                    <label>Hauteur: <span id="calib-analysis-val-h">25.5%</span></label>
+                                    <input type="range" id="calib-analysis-range-h" min="10" max="50" step="0.1" value="25.5" oninput="updateAnalysisFromSliders()">
+                                </div>
+                            </div>
+
+                            <!-- Hydro Logo Calibration -->
+                            <div class="calib-group">
+                                <div class="calib-group-title">🏷️ Logo Hydro (Haut Gauche)</div>
+                                <div class="calib-slider-row">
+                                    <label>X: <span id="calib-hydro-val-x">23.5%</span></label>
+                                    <input type="range" id="calib-hydro-range-x" min="0" max="90" step="0.1" value="23.5" oninput="updateHydroFromSliders()">
+                                </div>
+                                <div class="calib-slider-row">
+                                    <label>Y: <span id="calib-hydro-val-y">7.2%</span></label>
+                                    <input type="range" id="calib-hydro-range-y" min="0" max="60" step="0.1" value="7.2" oninput="updateHydroFromSliders()">
+                                </div>
+                                <div class="calib-slider-row">
+                                    <label>Taille (%): <span id="calib-hydro-val-w">14.5%</span></label>
+                                    <input type="range" id="calib-hydro-range-w" min="2" max="50" step="0.1" value="14.5" oninput="updateHydroFromSliders()">
+                                </div>
+                                <button class="btn-delete-custom-asset" id="btn-toggle-del-hydro" onclick="toggleDefaultStickerVisibility('hydro')">
+                                    🗑️ Supprimer Logo Hydro
+                                </button>
+                            </div>
+
+                            <!-- Water Drop Icon Calibration -->
+                            <div class="calib-group">
+                                <div class="calib-group-title">💧 Icone Goutte (Milieu Droite)</div>
+                                <div class="calib-slider-row">
+                                    <label>X: <span id="calib-drop-val-x">75.8%</span></label>
+                                    <input type="range" id="calib-drop-range-x" min="40" max="95" step="0.1" value="75.8" oninput="updateDropFromSliders()">
+                                </div>
+                                <div class="calib-slider-row">
+                                    <label>Y: <span id="calib-drop-val-y">40.2%</span></label>
+                                    <input type="range" id="calib-drop-range-y" min="10" max="80" step="0.1" value="40.2" oninput="updateDropFromSliders()">
+                                </div>
+                                <div class="calib-slider-row">
+                                    <label>Taille (%): <span id="calib-drop-val-w">11.5%</span></label>
+                                    <input type="range" id="calib-drop-range-w" min="2" max="50" step="0.1" value="11.5" oninput="updateDropFromSliders()">
+                                </div>
+                                <button class="btn-delete-custom-asset" id="btn-toggle-del-drop" onclick="toggleDefaultStickerVisibility('drop')">
+                                    🗑️ Supprimer Icone Goutte
+                                </button>
+                            </div>
+
+                            <!-- Sticker Spray Can Calibration -->
+                            <div class="calib-group">
+                                <div class="calib-group-title">🎨 Sticker Spray Can</div>
+                                <div class="calib-slider-row">
+                                    <label>X: <span id="calib-spray-val-x">5.2%</span></label>
+                                    <input type="range" id="calib-spray-range-x" min="0" max="95" step="0.1" value="5.2" oninput="updateSprayFromSliders()">
+                                </div>
+                                <div class="calib-slider-row">
+                                    <label>Y: <span id="calib-spray-val-y">35.0%</span></label>
+                                    <input type="range" id="calib-spray-range-y" min="0" max="90" step="0.1" value="35.0" oninput="updateSprayFromSliders()">
+                                </div>
+                                <div class="calib-slider-row">
+                                    <label>Taille (%): <span id="calib-spray-val-w">10.0%</span></label>
+                                    <input type="range" id="calib-spray-range-w" min="2" max="50" step="0.1" value="10.0" oninput="updateSprayFromSliders()">
+                                </div>
+                                <button class="btn-delete-custom-asset" id="btn-toggle-del-spray" onclick="toggleDefaultStickerVisibility('spray')">
+                                    🗑️ Supprimer Sticker Spray
+                                </button>
+                            </div>
+
+                            <!-- Sticker Graffiti Calibration -->
+                            <div class="calib-group">
+                                <div class="calib-group-title">✍️ Sticker Graffiti</div>
+                                <div class="calib-slider-row">
+                                    <label>X: <span id="calib-graffiti-val-x">42.0%</span></label>
+                                    <input type="range" id="calib-graffiti-range-x" min="0" max="95" step="0.1" value="42.0" oninput="updateGraffitiFromSliders()">
+                                </div>
+                                <div class="calib-slider-row">
+                                    <label>Y: <span id="calib-graffiti-val-y">72.0%</span></label>
+                                    <input type="range" id="calib-graffiti-range-y" min="0" max="90" step="0.1" value="72.0" oninput="updateGraffitiFromSliders()">
+                                </div>
+                                <div class="calib-slider-row">
+                                    <label>Taille (%): <span id="calib-graffiti-val-w">18.0%</span></label>
+                                    <input type="range" id="calib-graffiti-range-w" min="2" max="60" step="0.1" value="18.0" oninput="updateGraffitiFromSliders()">
+                                </div>
+                                <button class="btn-delete-custom-asset" id="btn-toggle-del-graffiti" onclick="toggleDefaultStickerVisibility('graffiti')">
+                                    🗑️ Supprimer Sticker Graffiti
+                                </button>
+                            </div>
+
+                            <!-- Sticker Smiley Calibration -->
+                            <div class="calib-group">
+                                <div class="calib-group-title">😊 Sticker Smiley Slime</div>
+                                <div class="calib-slider-row">
+                                    <label>X: <span id="calib-smiley-val-x">86.0%</span></label>
+                                    <input type="range" id="calib-smiley-range-x" min="0" max="95" step="0.1" value="86.0" oninput="updateSmileyFromSliders()">
+                                </div>
+                                <div class="calib-slider-row">
+                                    <label>Y: <span id="calib-smiley-val-y">65.0%</span></label>
+                                    <input type="range" id="calib-smiley-range-y" min="0" max="90" step="0.1" value="65.0" oninput="updateSmileyFromSliders()">
+                                </div>
+                                <div class="calib-slider-row">
+                                    <label>Taille (%): <span id="calib-smiley-val-w">9.5%</span></label>
+                                    <input type="range" id="calib-smiley-range-w" min="2" max="50" step="0.1" value="9.5" oninput="updateSmileyFromSliders()">
+                                </div>
+                                <button class="btn-delete-custom-asset" id="btn-toggle-del-smiley" onclick="toggleDefaultStickerVisibility('smiley')">
+                                    🗑️ Supprimer Sticker Smiley
+                                </button>
+                            </div>
+
+                            <!-- Dynamic User Custom Assets Calibration -->
+                            <div id="custom-assets-calibration-list"></div>
+
+                            <button class="btn-restore-defaults" onclick="restoreAllDefaultStickers()" style="width:100%; margin-top: 10px; margin-bottom: 6px; padding: 6px; font-size: 11px; font-weight: 700; color: #475569; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer;">
+                                🔄 Restaurer tous les stickers par défaut
+                            </button>
+
+                            <button class="btn-save-calib" onclick="saveHotspotCalibration()">
+                                🔒 Fixer & Enregistrer Tout
+                            </button>
+                        </div>
+
+                        <!-- User's Clean Design Machine Image -->
+                        <div class="user-machine-wrapper" id="user-machine-wrapper">
+                            <img src="/static/irrigation_machine.png?v=4" alt="Station d'Irrigation Design" class="user-machine-img powered-off" id="user-machine-img">
+                            
+                            <!-- Container for User Imported Custom Assets / Stickers -->
+                            <div id="user-custom-assets-layer"></div>
+                            
+                            <!-- Draggable Brand Logo: Hydro (Top Left Header Space) -->
+                            <div class="machine-logo-element" id="machine-logo-hydro" title="Logo Brand Hydro">
+                                <div class="logo-drag-label">Logo Hydro</div>
+                                <img src="/static/logo_hydro.png?v=1" alt="Hydro Logo" class="machine-logo-img">
+                            </div>
+
+                            <!-- Draggable Brand Logo: Water Drop Icon (Middle Right Square Block) -->
+                            <div class="machine-logo-element" id="machine-logo-drop" title="Icone Goutte d'Eau">
+                                <div class="logo-drag-label">Icone Goutte</div>
+                                <img src="/static/logo_water_drop.png?v=1" alt="Water Drop Icon" class="machine-logo-img">
+                            </div>
+
+                            <!-- Draggable Sticker 1: Spray Can Character -->
+                            <div class="machine-sticker-element" id="machine-sticker-spraycan" title="Sticker Bomb Spray Can">
+                                <div class="sticker-drag-label">Sticker Spray</div>
+                                <img src="/static/sticker_spraycan.png?v=1" alt="Sticker Spray Can" class="machine-sticker-img">
+                            </div>
+
+                            <!-- Draggable Sticker 2: WE LOVE GRAFFITI -->
+                            <div class="machine-sticker-element" id="machine-sticker-graffiti" title="Sticker Graffiti">
+                                <div class="sticker-drag-label">Sticker Graffiti</div>
+                                <img src="/static/sticker_graffiti.png?v=1" alt="Sticker Graffiti" class="machine-sticker-img">
+                            </div>
+
+                            <!-- Draggable Sticker 3: Slime Smiley -->
+                            <div class="machine-sticker-element" id="machine-sticker-smiley" title="Sticker Smiley Slime">
+                                <div class="sticker-drag-label">Sticker Smiley</div>
+                                <img src="/static/sticker_smiley.png?v=1" alt="Sticker Smiley" class="machine-sticker-img">
+                            </div>
+
+                            <!-- Alcove Glass Entrance Slot (Circled in red by user) -->
+                            <div class="machine-alcove-entrance" id="machine-alcove-entrance" title="Entrée de la machine — Emplacement du verre inséré">
+                                <div class="alcove-drag-label">Déplacer Verre</div>
+                                <div class="alcove-glass-wrapper" id="alcove-glass-wrapper">
+                                    <div class="empty-alcove-placeholder">
+                                        <span class="alcove-placeholder-icon">🥛</span>
+                                        <span class="alcove-placeholder-text">Aucun verre inséré</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Output Container (Récipient de sortie — haut droite) -->
+                            <div class="machine-output-container" id="machine-output-container" title="Récipient de sortie">
+                                <div class="output-drag-label">Déplacer Sortie</div>
+                                <div class="output-glass-card" id="output-glass-card">
+                                    <div class="output-glass-rim"></div>
+                                    <div class="output-water-trouble" id="output-water-trouble" style="height: 0%;"></div>
+                                    <div class="output-water-clean" id="output-water-clean" style="height: 0%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Interactive Digital Machine Analysis Display -->
+                            <div class="machine-analysis-display powered-off" id="machine-analysis-display" title="Écran d'Analyse Numérique Machine">
+                                <div class="analysis-drag-label">Déplacer Écran</div>
+
+                                <!-- Spinner loader (shown during scanning) -->
+                                <div class="analysis-spinner-wrap" id="analysis-loader">
+                                    <div class="analysis-spinner"></div>
+                                    <span class="analysis-spinner-label" id="analysis-status-text">ANALYSE EN COURS</span>
+                                </div>
+
+                                <!-- Status dot (hidden element, kept for JS compat) -->
+                                <span class="analysis-status-dot" id="analysis-status-dot" style="display:none;"></span>
+
+                                <!-- Metric readout (hidden during scanning) -->
+                                <div class="analysis-metrics-list" id="analysis-metrics-list">
+                                    <div class="analysis-readout-header" id="analysis-readout-header">HORS TENSION</div>
+                                    <div class="analysis-readout-row">
+                                        <span class="readout-label">Vol. total</span>
+                                        <span class="readout-value" id="display-vol-total">– –</span>
+                                    </div>
+                                    <div class="analysis-readout-row">
+                                        <span class="readout-label">Eau propre</span>
+                                        <span class="readout-value readout-clean" id="display-vol-clean">– –</span>
+                                    </div>
+                                    <div class="analysis-readout-row">
+                                        <span class="readout-label">Eau trouble</span>
+                                        <span class="readout-value readout-trouble" id="display-vol-trouble">– –</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Clickable 3D Red Industrial Power Push-Button -->
+                            <div class="power-button-hotspot" id="btn-machine-power" onclick="handlePowerButtonClick(event)" title="Bouton Marche / Arrêt (ON/OFF)">
+                                <div class="hotspot-drag-label">Bouton ON</div>
+                                <div class="power-btn-3d-cylinder">
+                                    <svg class="power-btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                                        <line x1="12" y1="2" x2="12" y2="12"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for editing Task details (Reflection & Diagnostic) -->
+    <div class="modal-overlay" id="task-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Détails du Bilan</h3>
+                <button class="btn-close" id="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h4 id="modal-task-title">Nom de la tâche</h4>
+                
+                <form id="modal-form">
+                    <input type="hidden" id="modal-task-id">
+                    
+                    <div class="form-group">
+                        <label for="modal-resultat">Résultat</label>
+                        <select id="modal-resultat">
+                            <option value="Réussie">Réussie</option>
+                            <option value="Partielle">Partielle</option>
+                            <option value="Échouée">Échouée</option>
+                            <option value="Reportée">Reportée</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="modal-ressenti">Ressenti</label>
+                        <select id="modal-ressenti">
+                            <option value="Non spécifié">Non spécifié</option>
+                            <option value="En feu">En feu</option>
+                            <option value="Bien">Bien</option>
+                            <option value="Neutre">Neutre</option>
+                            <option value="Difficile">Difficile</option>
+                            <option value="Très dur">Très dur</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="modal-impact">Impact attendu</label>
+                        <select id="modal-impact">
+                            <option value="Non spécifié">Non spécifié</option>
+                            <option value="Fort">Fort</option>
+                            <option value="Moyen">Moyen</option>
+                            <option value="Faible">Faible</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Diagnostics d'obstacles (plusieurs choix possibles)</label>
+                        <div class="diagnostics-grid">
+                            <label class="checkbox-label"><input type="checkbox" name="diagnostic" value="Succès"> Succès</label>
+                            <label class="checkbox-label"><input type="checkbox" name="diagnostic" value="Téléphone"> Téléphone</label>
+                            <label class="checkbox-label"><input type="checkbox" name="diagnostic" value="Fatigue"> Fatigue</label>
+                            <label class="checkbox-label"><input type="checkbox" name="diagnostic" value="Procrastination"> Procrastination</label>
+                            <label class="checkbox-label"><input type="checkbox" name="diagnostic" value="Concentration"> Concentration</label>
+                            <label class="checkbox-label"><input type="checkbox" name="diagnostic" value="Mauvaise orga"> Mauvaise orga</label>
+                            <label class="checkbox-label"><input type="checkbox" name="diagnostic" value="Temps"> Temps</label>
+                            <label class="checkbox-label"><input type="checkbox" name="diagnostic" value="Stress"> Stress</label>
+                            <label class="checkbox-label"><input type="checkbox" name="diagnostic" value="Difficile"> Difficile</label>
+                            <label class="checkbox-label"><input type="checkbox" name="diagnostic" value="Imprévu"> Imprévu</label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-full">Sauvegarder dans Notion</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Bilan de Journée UI Overlay -->
+    <div class="bilan-overlay" id="bilan-overlay">
+        <div class="bilan-card">
+            <!-- Header Section -->
+            <div class="bilan-card-header">
+                <div class="bilan-card-header-left">
+                    <span class="bilan-indicator">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"/>
+                        </svg>
+                        Bilan de journée
+                    </span>
+                </div>
+                <div class="bilan-card-header-right">
+                    <button class="btn-minimize-bilan" id="btn-minimize-bilan" title="Réduire et discuter">Discuter</button>
+                    <button class="btn-close-bilan" id="btn-close-bilan" title="Fermer le bilan">&times;</button>
+                </div>
+            </div>
+            
+            <!-- Body Container -->
+            <div class="bilan-card-body">
+                <!-- Intro Screen -->
+                <div class="bilan-screen active" id="bilan-screen-intro">
+                    <div class="bilan-hero-icon">
+                        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="9" y1="9" x2="15" y2="9"/>
+                            <line x1="9" y1="13" x2="15" y2="13"/>
+                            <line x1="9" y1="17" x2="15" y2="17"/>
+                        </svg>
+                    </div>
+                    <h3 class="bilan-screen-title">Bilan de la journée</h3>
+                    <p class="bilan-screen-desc" id="bilan-intro-text">Analyse de tes tâches du jour en cours...</p>
+                    <div class="bilan-actions-row">
+                        <button class="btn btn-primary" id="btn-start-bilan-go">Commencer le rituel</button>
+                    </div>
+                </div>
+                
+                <!-- Question Screen -->
+                <div class="bilan-screen" id="bilan-screen-question">
+                    <!-- Progress Info -->
+                    <div class="bilan-progress-info">
+                        <div class="bilan-progress-labels">
+                            <span id="bilan-task-progress">Tâche -- / --</span>
+                            <span id="bilan-step-progress">Étape -- / --</span>
+                        </div>
+                        <div class="bilan-progress-bar-container">
+                            <div class="bilan-progress-bar" id="bilan-progress-bar-fill"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Task Title -->
+                    <div class="bilan-task-heading">
+                        <span class="bilan-task-category-badge" id="bilan-task-category">Personnel</span>
+                        <h4 class="bilan-task-title" id="bilan-task-title-text">Nom de la tâche</h4>
+                    </div>
+                    
+                    <!-- Section and Question -->
+                    <div class="bilan-question-container">
+                        <div class="bilan-question-header">
+                            <span class="bilan-section-name" id="bilan-section-name">Diagnostic</span>
+                        </div>
+                        <h5 class="bilan-question-text" id="bilan-question-prompt">Comment s'est passée cette tâche ?</h5>
+                    </div>
+                    
+                    <!-- Answer Textarea -->
+                    <div class="bilan-answer-container">
+                        <textarea id="bilan-answer-input" placeholder="Partage ton ressenti, tes difficultés ou tes victoires..." rows="4"></textarea>
+                        <div class="bilan-tips">Appuie sur <strong>Entrée</strong> pour valider, <strong>Maj + Entrée</strong> pour aller à la ligne</div>
+                    </div>
+                    
+                    <div class="bilan-actions-row">
+                        <button class="btn btn-primary" id="btn-submit-bilan-step">Valider la réponse</button>
+                    </div>
+                </div>
+                
+                <!-- Transition Screen -->
+                <div class="bilan-screen" id="bilan-screen-transition">
+                    <div class="bilan-success-checkmark">
+                        <div class="checkmark-circle">
+                            <div class="checkmark-stem"></div>
+                            <div class="checkmark-kick"></div>
+                        </div>
+                    </div>
+                    <h3 class="bilan-screen-title" style="color: #4CAF50;">Tâche terminée</h3>
+                    <p class="bilan-screen-desc" id="bilan-transition-task-name">Tâche</p>
+                </div>
+                
+                <!-- Completion Screen -->
+                <div class="bilan-screen" id="bilan-screen-completion">
+                    <div class="bilan-hero-icon">
+                        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: #4CAF50;">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                    <h3 class="bilan-screen-title">Bilan complété !</h3>
+                    <p class="bilan-screen-desc">Tu as terminé ton rituel d'analyse de fin de journée. Félicitations pour tes efforts et ta discipline !</p>
+                    <div class="bilan-actions-row">
+                        <button class="btn btn-primary" id="btn-finish-bilan-close">Clôturer la journée</button>
+                        <button class="btn btn-secondary" id="btn-close-bilan-only">Retour au plan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Mandatory Task Rescheduling Modal (Start of Day / Session) -->
+    <div id="modal-reschedule-tasks" class="reschedule-modal-overlay" style="display: none;">
+        <div class="reschedule-modal-card">
+            <div class="reschedule-modal-header">
+                <div class="reschedule-header-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#e8590c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+                <div class="reschedule-header-text">
+                    <h3 class="reschedule-title">Replanification obligatoire des tâches</h3>
+                    <p class="reschedule-subtitle">Des tâches non terminées des jours précédents nécessitent une nouvelle date pour débloquer l'assistant.</p>
+                </div>
+            </div>
+
+            <div class="reschedule-notice-banner">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2383E2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span>Veuillez définir la nouvelle date de chaque tâche ci-dessous ou sélectionner <strong>Inconnue</strong>.</span>
+            </div>
+
+            <div class="reschedule-tasks-list" id="reschedule-tasks-list-container">
+                <!-- Dynamically populated task cards -->
+            </div>
+
+            <div class="reschedule-modal-footer">
+                <button type="button" class="btn btn-primary btn-full" id="btn-submit-reschedule">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Valider la replanification et Débloquer l'Assistant
+                </button>
+            </div>
+        </div>
+    <!-- Modal Partager un Souvenir / Voyage -->
+    <div id="modal-souvenir" class="reschedule-modal-overlay" style="display: none; align-items: center; justify-content: center; z-index: 10000; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px);">
+        <div style="background: #fff; max-width: 540px; width: 90%; border-radius: 14px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                    ✨ Partager un Souvenir ou Voyage
+                </h3>
+                <button type="button" id="btn-close-souvenir-modal" onclick="closeSouvenirModal()" style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #64748b; padding: 4px;">✕</button>
+            </div>
+
+            <form id="form-souvenir-modal" style="display: flex; flex-direction: column; gap: 14px;">
+                <div>
+                    <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 4px;">Titre du Souvenir ou Voyage</label>
+                    <input type="text" id="souvenir-titre" required placeholder="ex: Voyage à Shanghai 🚄, Randonnée à la Montagne 🏔️" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 4px;">Date / Période</label>
+                    <input type="text" id="souvenir-date" placeholder="ex: 31 Août 2026 ou 15-18 Août 2026" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 4px;">Message / Récit pour tes parents</label>
+                    <textarea id="souvenir-histoire" rows="3" placeholder="Raconte ce que tu as visité, l'ambiance, tes anecdotes..." style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; font-family: inherit; resize: vertical;"></textarea>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 4px;">📷 Photos du Souvenir / Voyage (sélection multiple possible)</label>
+                    <input type="file" id="souvenir-photos" accept="image/*" multiple style="font-size: 0.85rem; width: 100%;">
+                </div>
+
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px;">
+                    <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #166534; margin-bottom: 4px;">💬 Message WhatsApp personnalisé (Souvenir)</label>
+                    <textarea id="souvenir-wa-msg" rows="3" placeholder="Rédige ton message WhatsApp ici..." style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #86efac; border-radius: 8px; font-size: 0.85rem; font-family: inherit; resize: vertical;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                    <button type="button" id="btn-cancel-souvenir" onclick="closeSouvenirModal()" style="padding: 10px 18px; background: #f1f5f9; color: #475569; border: none; border-radius: 8px; font-size: 0.88rem; font-weight: 500; cursor: pointer;">Annuler</button>
+                    <button type="submit" id="btn-submit-souvenir" style="padding: 10px 22px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        📤 Publier le souvenir sur Notion & WhatsApp
+                    </button>
+                </div>
+                <div id="souvenir-result" style="font-size: 0.85rem; font-weight: 600; text-align: right; margin-top: 4px;"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openSouvenirModal() {
+            var modal = document.getElementById('modal-souvenir');
+            if (modal) {
+                modal.style.setProperty('display', 'flex', 'important');
+                var inputDate = document.getElementById('souvenir-date');
+                if (inputDate && !inputDate.value) {
+                    var dateFrEl = document.getElementById('su-date-fr');
+                    if (dateFrEl) inputDate.value = dateFrEl.textContent;
+                }
+            }
+        }
+        function closeSouvenirModal() {
+            var modal = document.getElementById('modal-souvenir');
+            if (modal) {
+                modal.style.setProperty('display', 'none', 'important');
+            }
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
